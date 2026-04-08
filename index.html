@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exportador de Comentários YouTube - Zero Custo</title>
+    <title>Exportador de Comentários YouTube</title>
     <style>
         * {
             margin: 0;
@@ -34,24 +34,9 @@
         h1 {
             color: #2d3748;
             font-size: 32px;
-            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 12px;
-        }
-
-        .badge {
-            background: #48bb78;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .subtitle {
-            color: #718096;
-            font-size: 16px;
         }
 
         .input-section {
@@ -74,7 +59,7 @@
             font-size: 14px;
         }
 
-        input[type="text"], input[type="password"] {
+        input[type="text"] {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #e2e8f0;
@@ -83,7 +68,7 @@
             transition: all 0.3s;
         }
 
-        input[type="text"]:focus, input[type="password"]:focus {
+        input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -179,37 +164,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        .info-box {
-            background: #c6f6d5;
-            border: 2px solid #48bb78;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .info-text {
-            color: #22543d;
-            font-size: 15px;
-            line-height: 1.8;
-            margin-bottom: 10px;
-        }
-
-        .info-title {
-            color: #22543d;
-            font-weight: 700;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .api-key-saved {
-            background: #c6f6d5;
-            color: #22543d;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-left: 10px;
-        }
-
         .preview-section {
             background: white;
             padding: 30px;
@@ -272,48 +226,18 @@
         <div class="header">
             <h1>
                 📥 Exportador de Comentários
-                <span class="badge">ZERO CUSTO</span>
             </h1>
-            <p class="subtitle">Coleta TODOS os comentários do YouTube e exporta em TXT - Analise onde quiser!</p>
         </div>
 
         <div class="input-section">
-            <div class="info-box">
-                <div class="info-title">✅ Como Funciona (100% Gratuito)</div>
-                <div class="info-text">
-                    <strong>1.</strong> Cole sua YouTube API Key (gratuita até 10.000 requisições/dia)<br>
-                    <strong>2.</strong> Cole o link do vídeo<br>
-                    <strong>3.</strong> Clique em "Coletar TODOS os Comentários"<br>
-                    <strong>4.</strong> Baixe o arquivo TXT com TODOS os comentários<br>
-                    <strong>5.</strong> Copie e cole em ChatGPT, Gemini, Claude ou qualquer IA para análise!
-                </div>
-                <div class="info-text">
-                    <strong>💰 Custo:</strong> R$ 0,00 - Não usa nenhuma API de IA!<br>
-                    <strong>📺 YouTube API Key:</strong> <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #22543d; text-decoration: underline;">Pegar aqui (grátis)</a>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>
-                    🔑 YouTube API Key
-                    <span id="apiKeySaved" class="api-key-saved" style="display: none;">✅ Salva</span>
-                </label>
-                <input type="password" id="youtubeApiKey" placeholder="Cole sua YouTube API Key (AIzaSy...)">
-            </div>
-
             <div class="input-group">
                 <label>🔗 URL do Vídeo do YouTube</label>
                 <input type="text" id="videoUrl" placeholder="https://youtube.com/watch?v=...">
             </div>
 
             <div class="button-group">
-                <button onclick="collectAllComments()">
-                    <span>📥</span>
-                    <span>Coletar TODOS os Comentários</span>
-                </button>
-                <button onclick="saveApiKey()" style="background: #48bb78;">
-                    <span>💾</span>
-                    <span>Salvar API Key</span>
+                <button onclick="collectAllComments()" style="background: #48bb78;">
+                    <span>Coletar Comentários</span>
                 </button>
             </div>
 
@@ -343,25 +267,7 @@
     <script>
         let allComments = [];
         let videoTitle = '';
-
-        window.onload = function() {
-            const savedKey = localStorage.getItem('youtube_api_key');
-            if (savedKey) {
-                document.getElementById('youtubeApiKey').value = savedKey;
-                document.getElementById('apiKeySaved').style.display = 'inline';
-            }
-        };
-
-        function saveApiKey() {
-            const apiKey = document.getElementById('youtubeApiKey').value.trim();
-            if (!apiKey) {
-                showStatus('❌ Cole a API Key primeiro!', 'error');
-                return;
-            }
-            localStorage.setItem('youtube_api_key', apiKey);
-            document.getElementById('apiKeySaved').style.display = 'inline';
-            showStatus('✅ API Key salva com sucesso!', 'success');
-        }
+        const YOUTUBE_API_KEY = 'AIzaSyB_TNCTDM9Hq2lm1IRriMyd86u_LAtNnrM';
 
         function showStatus(message, type = 'info') {
             const status = document.getElementById('status');
@@ -388,13 +294,7 @@
         }
 
         async function collectAllComments() {
-            const apiKey = document.getElementById('youtubeApiKey').value.trim();
             const videoUrl = document.getElementById('videoUrl').value.trim();
-
-            if (!apiKey) {
-                showStatus('❌ Cole sua YouTube API Key primeiro!', 'error');
-                return;
-            }
 
             if (!videoUrl) {
                 showStatus('❌ Cole o link do vídeo do YouTube!', 'error');
@@ -413,8 +313,8 @@
             allComments = [];
 
             try {
-                await getVideoInfo(videoId, apiKey);
-                await fetchAllComments(videoId, apiKey);
+                await getVideoInfo(videoId, YOUTUBE_API_KEY);
+                await fetchAllComments(videoId, YOUTUBE_API_KEY);
 
                 document.getElementById('loading').classList.remove('show');
                 displayPreview();
@@ -550,13 +450,21 @@
             txtContent += `FIM - ${allComments.length} comentários exportados\n`;
             txtContent += `====================================\n`;
 
+            // Criar nome do arquivo baseado no título do vídeo
+            const safeFileName = videoTitle
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                .replace(/[^a-z0-9]+/g, '-') // Substitui caracteres especiais por hífen
+                .replace(/^-+|-+$/g, '') // Remove hífens do início e fim
+                .substring(0, 50); // Limita a 50 caracteres
+
             const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `comentarios-youtube-${Date.now()}.txt`;
+            link.download = `${safeFileName}-comentarios.txt`;
             link.click();
 
-            showStatus('✅ Arquivo TXT baixado com sucesso! Agora você pode copiar e analisar em qualquer IA!', 'success');
+            showStatus('✅ Arquivo TXT baixado com sucesso!', 'success');
         }
     </script>
 </body>
