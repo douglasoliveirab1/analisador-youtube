@@ -355,7 +355,7 @@
                 );
 
                 const url = `https://www.googleapis.com/youtube/v3/commentThreads?` +
-                    `part=snippet&videoId=${videoId}&maxResults=100&` +
+                    `part=snippet,replies&videoId=${videoId}&maxResults=100&` +
                     `order=relevance&textFormat=plainText&key=${apiKey}` +
                     (pageToken ? `&pageToken=${pageToken}` : '');
 
@@ -370,13 +370,31 @@
 
                 for (const item of data.items) {
                     const snippet = item.snippet.topLevelComment.snippet;
+                    
+                    // Adiciona comentário principal
                     allComments.push({
                         text: snippet.textDisplay,
                         author: snippet.authorDisplayName,
                         likes: snippet.likeCount,
                         publishedAt: snippet.publishedAt,
-                        date: new Date(snippet.publishedAt).toLocaleDateString('pt-BR')
+                        date: new Date(snippet.publishedAt).toLocaleDateString('pt-BR'),
+                        isReply: false
                     });
+
+                    // Adiciona respostas se existirem
+                    if (item.replies && item.replies.comments) {
+                        for (const reply of item.replies.comments) {
+                            const replySnippet = reply.snippet;
+                            allComments.push({
+                                text: replySnippet.textDisplay,
+                                author: replySnippet.authorDisplayName,
+                                likes: replySnippet.likeCount,
+                                publishedAt: replySnippet.publishedAt,
+                                date: new Date(replySnippet.publishedAt).toLocaleDateString('pt-BR'),
+                                isReply: true
+                            });
+                        }
+                    }
                 }
 
                 pageToken = data.nextPageToken;
@@ -385,7 +403,7 @@
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
 
-            console.log(`✅ Total coletado: ${allComments.length} comentários`);
+            console.log(`✅ Total coletado: ${allComments.length} comentários (incluindo respostas)`);
         }
 
         function displayPreview() {
@@ -438,7 +456,7 @@
 
             allComments.forEach((comment, index) => {
                 txtContent += `\n─────────────────────────────────────\n`;
-                txtContent += `COMENTÁRIO #${index + 1}\n`;
+                txtContent += `${comment.isReply ? '↳ RESPOSTA' : 'COMENTÁRIO'} #${index + 1}\n`;
                 txtContent += `─────────────────────────────────────\n`;
                 txtContent += `Autor: ${comment.author}\n`;
                 txtContent += `Curtidas: ${comment.likes}\n`;
