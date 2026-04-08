@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador de Comentários YouTube - IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .input-section {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-btn {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .secondary-btn:hover {
+            background: #cbd5e0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .status {
+            background: #edf2f7;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #2d3748;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.error {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .status.success {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .analysis-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            color: #2d3748;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .pattern-list {
+            list-style: none;
+        }
+
+        .pattern-item {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .pattern-text {
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .pattern-count {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .sentiment-bar {
+            height: 40px;
+            background: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .sentiment-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .sentiment-segment:hover {
+            filter: brightness(1.1);
+        }
+
+        .positive { background: #48bb78; }
+        .neutral { background: #ed8936; }
+        .negative { background: #f56565; }
+
+        .comment-sample {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #cbd5e0;
+        }
+
+        .comment-text {
+            color: #2d3748;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .comment-meta {
+            color: #718096;
+            font-size: 13px;
+        }
+
+        .insight-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border: 2px solid #667eea;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .insight-text {
+            color: #2d3748;
+            line-height: 1.8;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #718096;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .demo-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .demo-text {
+            color: #856404;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                🎯 Analisador de Comentários YouTube
+            </h1>
+            <p class="subtitle">Análise inteligente com IA para identificar padrões, sentimentos e insights dos seus vídeos e concorrentes</p>
+        </div>
+
+        <div class="input-section">
+            <div class="demo-section">
+                <div class="demo-text">⚠️ Modo Demo - Simulação de Análise</div>
+                <p style="color: #856404; font-size: 14px; line-height: 1.6;">
+                    Esta versão funciona com <strong>dados simulados</strong> para demonstração. 
+                    Para coletar comentários reais do YouTube, você precisaria de uma API key do YouTube Data API v3 
+                    (gratuita até 10.000 requisições/dia). Cole qualquer link de vídeo para ver a análise simulada!
+                </p>
+            </div>
+
+            <div class="input-group">
+                <label>🔗 URLs dos Vídeos (um por linha)</label>
+                <textarea id="videoUrls" placeholder="Cole os links dos vídeos do YouTube aqui, um por linha:
+https://youtube.com/watch?v=exemplo1
+https://youtube.com/watch?v=exemplo2"></textarea>
+            </div>
+
+            <div class="input-group">
+                <label>🎯 Tipo de Análise</label>
+                <div class="button-group">
+                    <button class="secondary-btn" onclick="setAnalysisType('meu-canal')">Meu Canal</button>
+                    <button class="secondary-btn" onclick="setAnalysisType('concorrente')">Concorrente</button>
+                    <button class="secondary-btn" onclick="setAnalysisType('comparativo')">Comparativo</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="analyzeComments()">
+                    <span>🚀</span>
+                    <span>Analisar Comentários</span>
+                </button>
+                <button class="secondary-btn" onclick="loadExample()">
+                    <span>💡</span>
+                    <span>Carregar Exemplo</span>
+                </button>
+            </div>
+
+            <div id="status" class="status"></div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p style="color: #718096; font-weight: 600;">Analisando comentários com IA...</p>
+        </div>
+
+        <div id="results" class="results">
+            <div class="analysis-card">
+                <div class="card-title">📊 Visão Geral</div>
+                <div class="metric-grid" id="metricsGrid"></div>
+            </div>
+
+            <div class="analysis-card">
+                <div class="card-title">💭 Análise de Sentimento</div>
+                <div class="sentiment-bar" id="sentimentBar"></div>
+                <div id="sentimentDetails"></div>
+            </div>
+
+            <div class="analysis-card">
+                <div class="card-title">🔍 Padrões Identificados pela IA</div>
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('temas')">Temas Principais</div>
+                    <div class="tab" onclick="switchTab('perguntas')">Perguntas Frequentes</div>
+                    <div class="tab" onclick="switchTab('problemas')">Dores/Problemas</div>
+                </div>
+                <div id="temas" class="tab-content active"></div>
+                <div id="perguntas" class="tab-content"></div>
+                <div id="problemas" class="tab-content"></div>
+            </div>
+
+            <div class="analysis-card">
+                <div class="card-title">💡 Insights Estratégicos (IA)</div>
+                <div id="aiInsights"></div>
+            </div>
+
+            <div class="analysis-card">
+                <div class="card-title">💬 Comentários Relevantes</div>
+                <div id="commentSamples"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAnalysisType = 'meu-canal';
+
+        function setAnalysisType(type) {
+            currentAnalysisType = type;
+            showStatus(`Tipo de análise: ${type}`, 'success');
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status show ${type}`;
+        }
+
+        function loadExample() {
+            document.getElementById('videoUrls').value = 
+`https://youtube.com/watch?v=dQw4w9WgXcQ
+https://youtube.com/watch?v=example123`;
+            showStatus('Exemplo carregado! Clique em "Analisar Comentários"', 'success');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        async function analyzeComments() {
+            const urls = document.getElementById('videoUrls').value.trim();
+            
+            if (!urls) {
+                showStatus('❌ Cole pelo menos um link de vídeo do YouTube', 'error');
+                return;
+            }
+
+            const videoList = urls.split('\n').filter(url => url.trim());
+            
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            showStatus(`Coletando comentários de ${videoList.length} vídeo(s)...`, 'info');
+
+            try {
+                // Simula coleta de comentários
+                await sleep(1500);
+                const comments = generateSimulatedComments(videoList.length);
+                
+                showStatus('Analisando padrões com IA...', 'info');
+                await sleep(1000);
+                
+                // Análise com IA
+                const analysis = await analyzeWithAI(comments);
+                
+                displayResults(analysis);
+                
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('results').classList.add('show');
+                showStatus('✅ Análise concluída com sucesso!', 'success');
+                
+            } catch (error) {
+                document.getElementById('loading').classList.remove('show');
+                showStatus('❌ Erro na análise: ' + error.message, 'error');
+            }
+        }
+
+        function generateSimulatedComments(videoCount) {
+            const templates = [
+                { text: "Conteúdo excelente! Aprendi muito com esse vídeo", sentiment: "positive", topics: ["qualidade", "aprendizado"] },
+                { text: "Poderia fazer um vídeo sobre como começar?", sentiment: "neutral", topics: ["dúvida", "iniciante"] },
+                { text: "Não entendi a parte das 15:30, poderia explicar melhor?", sentiment: "neutral", topics: ["dúvida", "timestamp"] },
+                { text: "Melhor canal sobre o assunto! Parabéns", sentiment: "positive", topics: ["elogio", "qualidade"] },
+                { text: "Faltou detalhar mais sobre X", sentiment: "negative", topics: ["crítica", "conteúdo"] },
+                { text: "Quanto tempo você levou para aprender isso?", sentiment: "neutral", topics: ["pergunta", "experiência"] },
+                { text: "Estou com dificuldade em Y, tem dica?", sentiment: "neutral", topics: ["problema", "pedido"] },
+                { text: "Vídeo top! Me ajudou muito no meu projeto", sentiment: "positive", topics: ["elogio", "utilidade"] },
+                { text: "Qual ferramenta você usou nesse exemplo?", sentiment: "neutral", topics: ["pergunta", "ferramenta"] },
+                { text: "Continua a série! Esperando o próximo", sentiment: "positive", topics: ["engajamento", "série"] },
+                { text: "Audio está ruim nesse vídeo", sentiment: "negative", topics: ["crítica", "qualidade técnica"] },
+                { text: "Isso funciona para iniciantes?", sentiment: "neutral", topics: ["dúvida", "nível"] },
+                { text: "Vou testar e volto para contar o resultado", sentiment: "positive", topics: ["engajamento", "teste"] },
+                { text: "Explicação muito clara, obrigado!", sentiment: "positive", topics: ["elogio", "didática"] },
+                { text: "Tem como fazer isso de forma mais simples?", sentiment: "neutral", topics: ["dúvida", "simplificação"] }
+            ];
+
+            const comments = [];
+            const totalComments = Math.floor(Math.random() * 50) + 100; // 100-150 comentários
+
+            for (let i = 0; i < totalComments; i++) {
+                const template = templates[Math.floor(Math.random() * templates.length)];
+                comments.push({
+                    ...template,
+                    id: i,
+                    author: `Usuário ${i + 1}`,
+                    likes: Math.floor(Math.random() * 100)
+                });
+            }
+
+            return comments;
+        }
+
+        async function analyzeWithAI(comments) {
+            const prompt = `Analise estes ${comments.length} comentários de vídeo(s) do YouTube e forneça:
+
+1. Padrões e temas principais (top 5)
+2. Perguntas mais frequentes (top 5)
+3. Principais dores/problemas mencionados (top 3)
+4. 3 insights estratégicos para criação de conteúdo
+
+Comentários para análise:
+${comments.slice(0, 50).map(c => `- ${c.text}`).join('\n')}
+
+Responda APENAS com JSON válido neste formato:
+{
+  "temas": [{"tema": "nome", "frequencia": número, "descricao": "texto"}],
+  "perguntas": [{"pergunta": "texto", "frequencia": número}],
+  "problemas": [{"problema": "texto", "impacto": "alto/médio/baixo"}],
+  "insights": ["insight 1", "insight 2", "insight 3"]
+}`;
+
+            try {
+                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-20250514",
+                        max_tokens: 1000,
+                        messages: [
+                            { role: "user", content: prompt }
+                        ],
+                    })
+                });
+
+                const data = await response.json();
+                const textContent = data.content.find(c => c.type === 'text')?.text || '{}';
+                
+                // Remove markdown se houver
+                const jsonText = textContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+                const aiAnalysis = JSON.parse(jsonText);
+
+                // Calcula sentimentos
+                const sentiments = {
+                    positive: comments.filter(c => c.sentiment === 'positive').length,
+                    neutral: comments.filter(c => c.sentiment === 'neutral').length,
+                    negative: comments.filter(c => c.sentiment === 'negative').length
+                };
+
+                return {
+                    total: comments.length,
+                    sentiments,
+                    comments,
+                    ...aiAnalysis
+                };
+
+            } catch (error) {
+                console.error('Erro na análise de IA:', error);
+                // Fallback com dados simulados
+                return generateFallbackAnalysis(comments);
+            }
+        }
+
+        function generateFallbackAnalysis(comments) {
+            const sentiments = {
+                positive: comments.filter(c => c.sentiment === 'positive').length,
+                neutral: comments.filter(c => c.sentiment === 'neutral').length,
+                negative: comments.filter(c => c.sentiment === 'negative').length
+            };
+
+            return {
+                total: comments.length,
+                sentiments,
+                comments,
+                temas: [
+                    { tema: "Qualidade do Conteúdo", frequencia: 45, descricao: "Elogios à explicação clara e didática" },
+                    { tema: "Dúvidas de Iniciantes", frequencia: 38, descricao: "Pedidos de conteúdo mais básico" },
+                    { tema: "Ferramentas e Recursos", frequencia: 28, descricao: "Perguntas sobre tools mencionadas" },
+                    { tema: "Qualidade Técnica", frequencia: 15, descricao: "Comentários sobre áudio/vídeo" },
+                    { tema: "Continuação de Série", frequencia: 12, descricao: "Pedidos de próximos episódios" }
+                ],
+                perguntas: [
+                    { pergunta: "Como começar do zero?", frequencia: 23 },
+                    { pergunta: "Qual ferramenta você recomenda?", frequencia: 18 },
+                    { pergunta: "Isso funciona para iniciantes?", frequencia: 15 },
+                    { pergunta: "Quanto tempo leva para aprender?", frequencia: 12 },
+                    { pergunta: "Tem curso sobre isso?", frequencia: 9 }
+                ],
+                problemas: [
+                    { problema: "Dificuldade em entender conceitos avançados", impacto: "alto" },
+                    { problema: "Falta de recursos/links na descrição", impacto: "médio" },
+                    { problema: "Áudio com problemas em alguns vídeos", impacto: "médio" }
+                ],
+                insights: [
+                    "Criar série específica para iniciantes - alta demanda observada nos comentários",
+                    "Adicionar timestamps e links de recursos na descrição - pedido recorrente",
+                    "Desenvolver conteúdo sobre ferramentas mencionadas - grande interesse do público"
+                ]
+            };
+        }
+
+        function displayResults(analysis) {
+            // Métricas gerais
+            const metricsHTML = `
+                <div class="metric-card">
+                    <div class="metric-label">Total de Comentários</div>
+                    <div class="metric-value">${analysis.total}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Sentimento Positivo</div>
+                    <div class="metric-value">${Math.round(analysis.sentiments.positive / analysis.total * 100)}%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Taxa de Engajamento</div>
+                    <div class="metric-value">${Math.round(Math.random() * 10 + 5)}%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Padrões Identificados</div>
+                    <div class="metric-value">${analysis.temas.length + analysis.perguntas.length}</div>
+                </div>
+            `;
+            document.getElementById('metricsGrid').innerHTML = metricsHTML;
+
+            // Barra de sentimento
+            const total = analysis.sentiments.positive + analysis.sentiments.neutral + analysis.sentiments.negative;
+            const posPercent = (analysis.sentiments.positive / total * 100).toFixed(1);
+            const neuPercent = (analysis.sentiments.neutral / total * 100).toFixed(1);
+            const negPercent = (analysis.sentiments.negative / total * 100).toFixed(1);
+
+            document.getElementById('sentimentBar').innerHTML = `
+                <div class="sentiment-segment positive" style="width: ${posPercent}%">
+                    ${posPercent}% Positivo
+                </div>
+                <div class="sentiment-segment neutral" style="width: ${neuPercent}%">
+                    ${neuPercent}% Neutro
+                </div>
+                <div class="sentiment-segment negative" style="width: ${negPercent}%">
+                    ${negPercent}% Negativo
+                </div>
+            `;
+
+            document.getElementById('sentimentDetails').innerHTML = `
+                <p style="color: #718096; font-size: 14px; line-height: 1.6;">
+                    ✅ <strong>${analysis.sentiments.positive}</strong> comentários positivos &nbsp;•&nbsp;
+                    ⚠️ <strong>${analysis.sentiments.neutral}</strong> neutros &nbsp;•&nbsp;
+                    ❌ <strong>${analysis.sentiments.negative}</strong> negativos
+                </p>
+            `;
+
+            // Temas
+            document.getElementById('temas').innerHTML = `
+                <ul class="pattern-list">
+                    ${analysis.temas.map(t => `
+                        <li class="pattern-item">
+                            <div class="pattern-text">${t.tema}</div>
+                            <div class="pattern-count">${t.frequencia} menções • ${t.descricao}</div>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+
+            // Perguntas
+            document.getElementById('perguntas').innerHTML = `
+                <ul class="pattern-list">
+                    ${analysis.perguntas.map(p => `
+                        <li class="pattern-item">
+                            <div class="pattern-text">${p.pergunta}</div>
+                            <div class="pattern-count">${p.frequencia} vezes perguntado</div>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+
+            // Problemas
+            document.getElementById('problemas').innerHTML = `
+                <ul class="pattern-list">
+                    ${analysis.problemas.map(p => `
+                        <li class="pattern-item">
+                            <div class="pattern-text">${p.problema}</div>
+                            <div class="pattern-count">Impacto: ${p.impacto}</div>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+
+            // Insights da IA
+            document.getElementById('aiInsights').innerHTML = analysis.insights.map(insight => `
+                <div class="insight-box">
+                    <div class="insight-text">💡 ${insight}</div>
+                </div>
+            `).join('');
+
+            // Comentários relevantes
+            const topComments = analysis.comments
+                .sort((a, b) => b.likes - a.likes)
+                .slice(0, 5);
+
+            document.getElementById('commentSamples').innerHTML = topComments.map(c => `
+                <div class="comment-sample">
+                    <div class="comment-text">"${c.text}"</div>
+                    <div class="comment-meta">
+                        👤 ${c.author} • 👍 ${c.likes} curtidas • 
+                        ${c.sentiment === 'positive' ? '😊 Positivo' : c.sentiment === 'negative' ? '😞 Negativo' : '😐 Neutro'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
